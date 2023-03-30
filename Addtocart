@@ -1,0 +1,48 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# specify the URL of the product page you want to add to the cart
+product_url = "https://www.example.com/product"
+
+# specify the number of items you want to add to the cart
+num_items = 1
+
+# create a new Chrome browser instance
+browser = webdriver.Chrome()
+
+# navigate to the product page
+browser.get(product_url)
+
+# find the "Add to Cart" button and click it
+add_to_cart_button = WebDriverWait(browser, 10).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, "button.add-to-cart"))
+)
+add_to_cart_button.click()
+
+# wait for the cart icon to update with the number of items added
+cart_icon = WebDriverWait(browser, 10).until(
+    EC.text_to_be_present_in_element((By.CSS_SELECTOR, "span.cart-icon"), str(num_items))
+)
+
+# navigate to the cart page
+cart_url = "https://www.example.com/cart"
+browser.get(cart_url)
+
+# find the "Checkout" button and click it
+checkout_button = WebDriverWait(browser, 10).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, "button.checkout"))
+)
+checkout_button.click()
+
+# fill in any required checkout information (e.g. shipping address, payment method)
+
+# submit the order
+submit_order_button = WebDriverWait(browser, 10).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, "button.submit-order"))
+)
+submit_order_button.click()
+
+# close the browser
+browser.quit()
