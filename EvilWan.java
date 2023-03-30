@@ -36,50 +36,29 @@ public class BurpExtender implements IBurpExtender, IExtensionStateListener, IHt
 
     @Override
     public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-        if (toolFlag == IBurpExtenderCallbacks.TOOL_PROXY && !messageIsRequest) {
-            List<String> upgradeHeader = messageInfo.getResponseHeaders().getHeaders("Upgrade");
-            if (upgradeHeader != null && upgradeHeader.size() > 0 && upgradeHeader.get(0).equalsIgnoreCase("websocket")) {
-                String host = helpers.analyzeRequest(messageInfo).getUrl().getHost();
-                URI uri = URI.create(messageInfo.getHttpService().getProtocol() + "://" + host);
-                wsClient = new WebSocketClient(uri) {
+        if (messageIsRequest && (toolFlag == IBurpExtenderCallbacks.TOOL_PROXY || toolFlag == IBurpExtenderCallbacks.TOOL_REPEATER)) {
+            IRequestInfo requestInfo = callbacks.getHelpers().analyzeRequest(messageInfo);
 
-                    @Override
-                    public void onOpen(ServerHandshake handshakedata) {
-                        callbacks.printOutput("WebSocket connection established");
-                    }
-
-                    @Override
-                    public void onMessage(String message) {
-                        callbacks.printOutput("Received message from WebSocket server: " + message);
-                    }
-
-                    @Override
-                    public void onClose(int code, String reason, boolean remote) {
-                        callbacks.printOutput("WebSocket connection closed");
-                    }
-
-                    @Override
-                    public void onError(Exception ex) {
-                        callbacks.printError(ex.getMessage());
-                    }
-                };
-                wsClient.connect();
-
-                String request = new String(messageInfo.getRequest());
-                IRequestInfo requestInfo = helpers.analyzeRequest(messageInfo);
+            // Check if the request is a POST request
+            if (requestInfo.getMethod().equals("POST")) {
+                // Get the request body bytes
+                byte[] requestBytes = messageInfo.getRequest();
                 int bodyOffset = requestInfo.getBodyOffset();
+                byte[] requestBody = new byte[requestBytes.length - bodyOffset];
+                System.arraycopy(requestBytes, bodyOffset, requestBody, 0, requestBody.length);
 
-                // Replace the URL in the WebSocket request
-                String newRequest = request.substring(0, bodyOffset);
-                String url = WS_PROTOCOL + host + requestInfo.getUrl().getFile();
-                if (messageInfo.getHttpService().getProtocol().equals("https")) {
-                    url = WSS_PROTOCOL + host + requestInfo.getUrl().getFile();
-                }
-                newRequest += url + request.substring(bodyOffset + requestInfo.getBodyLength());
+                // Convert the request body bytes to a string
+                String requestBodyString = callbacks.getHelpers().bytesToString(requestBody);
 
-                messageInfo.setRequest(newRequest.getBytes());
+                // Replace the URL in the request body
+                String newRequestBodyString = requestBodyString.replaceAll("http://example.com", "https://www.msn.com");
+
+                // Convert the modified request body string back to bytes
+                byte[] newRequestBody = callbacks.getHelpers().stringToBytes(newRequestBodyString);
+
+                // Update the request with the modified request body
+                messageInfo.setRequest(callbacks.getHelpers().buildHttpMessage(requestInfo.getHeaders(), newRequestBody));
             }
         }
     }
-
 }
