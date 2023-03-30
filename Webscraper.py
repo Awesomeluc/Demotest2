@@ -1,30 +1,25 @@
-import urllib.request
+import requests
 from bs4 import BeautifulSoup
 import csv
 
-url = "https://www.google.com/search?q=python"
+# specify the URL of the page you want to scrape
+url = "https://www.example.com"
 
-html = urllib.request.urlopen(url).read()
-soup = BeautifulSoup(html, "html.parser")
-html_content = response.content
+# send a GET request to the URL
+response = requests.get(url)
 
-results = []
+# create a BeautifulSoup object to parse the HTML content
+soup = BeautifulSoup(response.content, "html.parser")
 
-for result in soup.find_all("div", class_="BNeawe iBp4i AP7Wnd"):
-    link = result.find("a").get("href")
-    title = result.find("a").get_text()
-    description = result.find_next_sibling("div").get_text()
-    price_elements = soup.find_all('span', class_='price')
+# extract the data you want to scrape
+data = []
+for item in soup.find_all("div", {"class": "item"}):
+    title = item.find("h2").text.strip()
+    price = item.find("div", {"class": "price"}).text.strip()
+    data.append((title, price))
 
-
-    # Clean data
-    link = link.split("/url?q=")[1].split("&sa=")[0]
-
-    # Append data to results
-    results.append([title, link, description, price_elements])
-
-# Write data to CSV file
-with open("results.csv", "w", newline="") as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(["Title", "Link", "Description", "Price"])
-    writer.writerows(results)
+# write the data to a CSV file
+with open("data.csv", "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow(["Title", "Price"])
+    writer.writerows(data)
