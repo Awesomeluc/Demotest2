@@ -1,16 +1,22 @@
 # Set the destination folder
-$destinationFolder = "D:\Backup"
+$destinationFolder = Read-Host "Enter the path for the backup folder"
 
 # Create a new folder in the destination folder with the current date and time
 $backupFolder = Join-Path $destinationFolder (Get-Date -Format "yyyyMMdd_HHmmss")
-New-Item -ItemType Directory -Path $backupFolder
+try {
+    New-Item -ItemType Directory -Path $backupFolder -ErrorAction Stop
+}
+catch {
+    Write-Host "Error creating backup folder: $($Error[0].Exception.Message)" -ForegroundColor Red
+    exit 1
+}
 
 # Define an array of user data folders to be backed up
 $userDataFolders = @(
-    [Environment]::GetFolderPath("MyDocuments")
-    [Environment]::GetFolderPath("MyPictures")
-    [Environment]::GetFolderPath("MyVideos")
-    [Environment]::GetFolderPath("MyMusic")
+    [Environment]::GetFolderPath("Documents")
+    [Environment]::GetFolderPath("Pictures")
+    [Environment]::GetFolderPath("Videos")
+    [Environment]::GetFolderPath("Music")
     [Environment]::GetFolderPath("Downloads")
     [Environment]::GetFolderPath("Desktop")
     [Environment]::GetFolderPath("Favorites")
