@@ -45,26 +45,30 @@ $enableCompression = Read-Host "Do you want to enable compression? (Y/N)"
 if ($enableCompression.ToUpper() -eq "Y") {
     # Compress the backup folder and calculate the compressed file size
     $compressedFile = Join-Path $destinationFolder "$($backupFolder.Name).zip"
-    Compress-Archive -Path $backupFolder.FullName -DestinationPath $compressedFile -Force
-    $compressedSize = Get-ChildItem $compressedFile -Force | Select-Object -ExpandProperty Length
+    try {
+        Compress-Archive -Path $backupFolder.FullName -DestinationPath $compressedFile -Force -ErrorAction Stop
+        $compressedSize = Get-ChildItem $compressedFile -Force | Select-Object -ExpandProperty Length
 
-    # Convert the sizes to gigabytes or megabytes depending on the size
-    $backupSize = $(Get-ChildItem $backupFolder -Recurse | Measure-Object -Property Length -Sum).Sum
-    if ($backupSize -ge 1GB) {
-        $backupSize = [math]::Round($backupSize / 1GB, 2)
-        $sizeUnit = "GB"
-    } elseif ($backupSize -ge 1MB) {
-        $backupSize = [math]::Round($backupSize / 1MB, 2)
-        $sizeUnit = "MB"
-    } else {
-        $sizeUnit = "bytes"
+        # Convert the sizes to gigabytes or megabytes depending on the size
+        $backupSize = $(Get-ChildItem $backupFolder -Recurse | Measure-Object -Property Length -Sum).Sum
+        if ($backupSize -ge 1GB) {
+            $backupSize = [math]::Round($backupSize / 1GB, 2)
+            $sizeUnit = "GB"
+        } elseif ($backupSize -ge 1MB) {
+            $backupSize = [math]::Round($backupSize / 1MB, 2)
+            $sizeUnit = "MB"
+        } else {
+            $sizeUnit = "bytes"
+        }
+
+        $compressedSize = [math]::Round($compressedSize / 1MB, 2)
+
+        Write-Host "Backup completed successfully. Backup files are located in: $compressedFile"
+        Write-Host "Backup folder size: $backupSize $sizeUnit"
+        Write-Host "Compressed backup file size: $compressedSize MB"
+    } catch {
+        Write-Host "An error occurred during compression: $($_.Exception.Message)"
     }
-
-    $compressedSize = [math]::Round($compressedSize / 1MB, 2)
-
-    Write-Host "Backup completed successfully. Backup files are located in: $compressedFile"
-    Write-Host "Backup folder size: $backupSize $sizeUnit"
-    Write-Host "Compressed backup file size: $compressedSize MB"
 } else {
     # Display the size of the backup folder without compression
     $backupSize = $(Get-ChildItem $backupFolder -Recurse | Measure-Object -Property Length -Sum).Sum
