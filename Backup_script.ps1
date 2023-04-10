@@ -17,7 +17,7 @@ $userDataFolders = @(
     [Environment]::GetFolderPath("MyPictures")
     [Environment]::GetFolderPath("MyVideos")
     [Environment]::GetFolderPath("MyMusic")
-    [Environment]::GetFolderPath("Downloads")
+    Join-Path $env:USERPROFILE "Downloads"
     [Environment]::GetFolderPath("Desktop")
     [Environment]::GetFolderPath("Favorites")
 )
@@ -44,7 +44,7 @@ foreach ($folder in $userDataFolders) {
 $enableCompression = Read-Host "Do you want to enable compression? (Y/N)"
 if ($enableCompression.ToUpper() -eq "Y") {
     # Compress the backup folder and calculate the compressed file size
-    $compressedFile = Join-Path $destinationFolder "$($backupFolder.Name).zip"
+    $compressedFile = Join-Path $destinationFolder "$(Split-Path $backupFolder -Leaf).zip"
     try {
         Compress-Archive -Path $backupFolder.FullName -DestinationPath $compressedFile -Force -ErrorAction Stop
         $compressedSize = Get-ChildItem $compressedFile -Force | Select-Object -ExpandProperty Length
