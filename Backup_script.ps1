@@ -17,7 +17,7 @@ $userDataFolders = @(
     [Environment]::GetFolderPath("MyPictures")
     [Environment]::GetFolderPath("MyVideos")
     [Environment]::GetFolderPath("MyMusic")
-    [Environment]::GetFolderPath("MyDownloads")
+    [Environment]::GetFolderPath("Downloads")
     [Environment]::GetFolderPath("Desktop")
     [Environment]::GetFolderPath("Favorites")
 )
