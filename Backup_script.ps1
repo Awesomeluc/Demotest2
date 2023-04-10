@@ -13,11 +13,11 @@ catch {
 
 # Define an array of user data folders to be backed up
 $userDataFolders = @(
-    [Environment]::GetFolderPath("Documents")
-    [Environment]::GetFolderPath("Pictures")
-    [Environment]::GetFolderPath("Videos")
-    [Environment]::GetFolderPath("Music")
-    [Environment]::GetFolderPath("Downloads")
+    [Environment]::GetFolderPath("MyDocuments")
+    [Environment]::GetFolderPath("MyPictures")
+    [Environment]::GetFolderPath("MyVideos")
+    [Environment]::GetFolderPath("MyMusic")
+    [Environment]::GetFolderPath("MyDownloads")
     [Environment]::GetFolderPath("Desktop")
     [Environment]::GetFolderPath("Favorites")
 )
