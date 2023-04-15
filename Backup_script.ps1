@@ -22,6 +22,9 @@ $userDataFolders = @(
     [Environment]::GetFolderPath("Favorites")
 )
 
+# Create a hash table to store the hash values
+$hashTable = @{}
+
 # Loop through the user data folders and copy files and subfolders to the backup folder
 foreach ($folder in $userDataFolders) {
     if (Test-Path $folder) {
@@ -34,11 +37,16 @@ foreach ($folder in $userDataFolders) {
                 New-Item -ItemType Directory -Path $newPath
             } else {
                 Copy-Item $_.FullName $newPath
+
+                # Calculate the hash value of the file and add it to the hash table
+                $hashValue = Get-FileHash $_.FullName -Algorithm SHA256
+                $hashTable.Add($_.FullName, $hashValue.Hash)
             }
         }
         Write-Host "Backed up $folderName to $newFolder"
     }
 }
+
 # Get the size of the backup folder
 $backupFolderSize = (Get-ChildItem $backupFolder -Recurse | Measure-Object -Property Length -Sum).Sum
 $backupFolderSizeReadable = "{0:N2}" -f ($backupFolderSize / 1MB)
@@ -49,6 +57,12 @@ $backupZipFile = "$backupFolder.zip"
 $estimatedZipFileSize = $backupFolderSize * 0.7 # Assumes 30% compression ratio
 $estimatedZipFileSizeReadable = "{0:N2}" -f ($estimatedZipFileSize / 1MB)
 Write-Host "Estimated compressed size: $estimatedZipFileSizeReadable MB"
+
+# Save the hash table to a CSV file
+$hashTableFile = Join-Path $backupFolder "hashTable.csv"
+$hashTable | Export-Csv $hashTableFile -NoTypeInformation
+Write-Host "Hash table saved to $hashTableFile"
+
 # Ask the user if they want to enable compression
 $compress = Read-Host "Do you want to compress the backup folder? (Y/N)"
 if ($compress -eq "Y") {
@@ -57,6 +71,7 @@ if ($compress -eq "Y") {
     Compress-Archive -Path $backupFolder -DestinationPath $backupZipFile
     Write-Host "Backup folder compressed to $backupZipFile"
 }
+
 
 
 
